@@ -1,16 +1,16 @@
 package com.devsuperior.desafioCRUD.controllers;
 
 import com.devsuperior.desafioCRUD.dto.ClientDTO;
-import com.devsuperior.desafioCRUD.entities.Client;
-import com.devsuperior.desafioCRUD.repositories.ClientRepository;
 import com.devsuperior.desafioCRUD.services.ClientService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Optional;
+import java.util.List;
 
 @RestController
 @RequestMapping(value = "/clients")
@@ -20,8 +20,11 @@ public class ClientController {
     private ClientService service;
     @GetMapping(value = "/{id}")
     public ClientDTO findById(@PathVariable Long id){
-        ClientDTO dto = service.findById(id);
-        return dto;
+        return service.findById(id);
     }
-
+    
+    @GetMapping
+    public Page<ClientDTO> findAll(Pageable pageable){
+        return service.findAll(pageable);
+    }
 }
