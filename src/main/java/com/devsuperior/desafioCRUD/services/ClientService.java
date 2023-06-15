@@ -3,13 +3,13 @@ package com.devsuperior.desafioCRUD.services;
 import com.devsuperior.desafioCRUD.dto.ClientDTO;
 import com.devsuperior.desafioCRUD.entities.Client;
 import com.devsuperior.desafioCRUD.repositories.ClientRepository;
+import com.devsuperior.desafioCRUD.services.exceptions.ResourceNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 public class ClientService {
@@ -18,7 +18,8 @@ public class ClientService {
     private ClientRepository repository;
     @Transactional(readOnly = true)
     public ClientDTO findById(Long id) {
-        Client client = repository.findById(id).get();
+        Client client = repository.findById(id).orElseThrow(
+                ()-> new ResourceNotFoundException("Recurso não encontrado"));
         return new ClientDTO(client);
     }
 
@@ -38,17 +39,25 @@ public class ClientService {
 
     @Transactional
     public ClientDTO update(Long id, ClientDTO dto) {
-        Client client = repository.getReferenceById(id);
-        copyDTOToClient(client, dto);
-        client = repository.save(client);
-        return new ClientDTO(client);
+        try {
+            Client client = repository.getReferenceById(id);
+            copyDTOToClient(client, dto);
+            client = repository.save(client);
+            return new ClientDTO(client);
+        } catch (EntityNotFoundException e) {
+            throw new ResourceNotFoundException("Recurso não encontrado");
+        }
+
     }
 
     @Transactional
     public void delete(Long id) {
-        repository.deleteById(id);
+        if(!repository.existsById(id)){
+            throw new ResourceNotFoundException("Recurso não encontrado");
+        } else {
+            repository.deleteById(id);
+        }
     }
-
 
     private void copyDTOToClient(Client client, ClientDTO dto) {
         client.setName(dto.getName());
